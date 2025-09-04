@@ -5,7 +5,7 @@ import threading
 
 app = Flask(__name__)
 
-COOKIE_FILES = ["cookie1.txt", "cookie2.txt", "cookie3.txt"]
+COOKIE_FILES = ["b603.txt", "b159.txt", "b004.txt"]
 
 cookie_state = {
     f: {"in_use": False, "last_released": 0}
