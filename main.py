@@ -4,7 +4,7 @@ import threading
 
 app = Flask(__name__)
 
-COOKIE_FILES = ["cookie1.txt", "cookie2.txt", "cookie3.txt"]
+COOKIE_FILES = ["b159.txt", "b603.txt"]
 
 cookie_state = {
     f: {"in_use": False, "last_released": 0}
@@ -52,7 +52,7 @@ def status():
     return jsonify(cookie_state)
 
 
-@app.route("/reset", methods=["POST"])
+@app.route("/reset", methods=["GET"])
 def reset():
     """Reset all cookies so they are free immediately (ignores cooldown)"""
     with lock:
