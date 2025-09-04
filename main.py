@@ -1,11 +1,10 @@
-# 13.49.80.166
 from flask import Flask, request, jsonify
 import time
 import threading
 
 app = Flask(__name__)
 
-COOKIE_FILES = ["b603.txt", "b159.txt"]
+COOKIE_FILES = ["cookie1.txt", "cookie2.txt", "cookie3.txt"]
 
 cookie_state = {
     f: {"in_use": False, "last_released": 0}
@@ -18,7 +17,6 @@ COOLDOWN = 120
 
 @app.route("/ping", methods=["GET"])
 def ping():
-    """Health check endpoint"""
     return jsonify({"status": "ok", "message": "Server is running"})
 
 
@@ -54,6 +52,15 @@ def status():
     return jsonify(cookie_state)
 
 
+@app.route("/reset", methods=["POST"])
+def reset():
+    """Reset all cookies so they are free immediately (ignores cooldown)"""
+    with lock:
+        for f in cookie_state:
+            cookie_state[f]["in_use"] = False
+            cookie_state[f]["last_released"] = 0
+    return jsonify({"message": "All cookies reset"})
+
+
 if __name__ == "__main__":
-    # Use "::" to allow both IPv6 and IPv4
     app.run(host="::", port=5000)
