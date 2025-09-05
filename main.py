@@ -1,8 +1,19 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 import time
 import threading
+import logging
+import os
 
 app = Flask(__name__)
+
+# --- Logging Setup ---
+LOG_FILE = "server.log"
+logging.basicConfig(
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
 
 COOKIE_FILES = ["b159.txt", "b603.txt"]
 
@@ -18,14 +29,14 @@ COOLDOWN = 120
 @app.route("/ping", methods=["GET"])
 def ping():
     ip = request.remote_addr
-    print(f"[PING] Received ping from {ip}")
+    logger.info(f"[PING] Received ping from {ip}")
     return jsonify({"status": "ok", "message": "Server is running"})
 
 
 @app.route("/start", methods=["POST"])
 def start():
     ip = request.remote_addr
-    print(f"[START] Request received from {ip}")
+    logger.info(f"[START] Request received from {ip}")
 
     with lock:
         now = time.time()
@@ -33,10 +44,10 @@ def start():
             if not state["in_use"] and (now - state["last_released"]) > COOLDOWN:
                 state["in_use"] = True
                 state["by"] = ip
-                print(f"[START] Assigned {f} to {ip}")
+                logger.info(f"[START] Assigned {f} to {ip}")
                 return jsonify({"cookie_file": f})
 
-        print(f"[START] No available cookies for {ip}")
+        logger.info(f"[START] No available cookies for {ip}")
         return jsonify({"cookie_file": None})
 
 
@@ -45,17 +56,17 @@ def end():
     ip = request.remote_addr
     data = request.get_json()
     cookie_file = data.get("cookie_file")
-    print(f"[END] Request from {ip} to release {cookie_file}")
+    logger.info(f"[END] Request from {ip} to release {cookie_file}")
 
     if cookie_file not in cookie_state:
-        print(f"[END] Invalid cookie file {cookie_file} from {ip}")
+        logger.warning(f"[END] Invalid cookie file {cookie_file} from {ip}")
         return jsonify({"error": "Invalid cookie file"}), 400
 
     with lock:
         cookie_state[cookie_file]["in_use"] = False
         cookie_state[cookie_file]["last_released"] = time.time()
         cookie_state[cookie_file]["by"] = ip
-        print(f"[END] {cookie_file} released by {ip}")
+        logger.info(f"[END] {cookie_file} released by {ip}")
 
     return jsonify({"message": f"{cookie_file} released"})
 
@@ -63,22 +74,37 @@ def end():
 @app.route("/status", methods=["GET"])
 def status():
     ip = request.remote_addr
-    print(f"[STATUS] Request from {ip}")
+    logger.info(f"[STATUS] Request from {ip}")
     return jsonify(cookie_state)
 
 
 @app.route("/reset", methods=["GET"])
 def reset():
     ip = request.remote_addr
-    print(f"[RESET] Reset request from {ip}")
+    logger.info(f"[RESET] Reset request from {ip}")
 
     with lock:
         for f in cookie_state:
             cookie_state[f]["in_use"] = False
             cookie_state[f]["last_released"] = 0
             cookie_state[f]["by"] = None
-    print(f"[RESET] All cookies reset by {ip}")
+    logger.info(f"[RESET] All cookies reset by {ip}")
     return jsonify({"message": "All cookies reset"})
+
+
+@app.route("/logs", methods=["GET"])
+def get_logs():
+    ip = request.remote_addr
+    logger.info(f"[LOGS] Logs requested by {ip}")
+
+    if not os.path.exists(LOG_FILE):
+        return jsonify({"error": "Log file not found"}), 404
+
+    # Return the log file content as plain text
+    with open(LOG_FILE, "r") as f:
+        logs = f.read()
+
+    return Response(logs, mimetype="text/plain")
 
 
 if __name__ == "__main__":
