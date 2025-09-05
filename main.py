@@ -63,6 +63,16 @@ def end():
         return jsonify({"error": "Invalid cookie file"}), 400
 
     with lock:
+        current_holder = cookie_state[cookie_file]["by"]
+
+        # Check if the same IP that reserved it is trying to release it
+        if current_holder != ip:
+            logger.warning(
+                f"[END] Unauthorized release attempt: {ip} tried to release {cookie_file}, "
+                f"but it is held by {current_holder}"
+            )
+            return jsonify({"error": "You are not the owner of this cookie"}), 403
+
         cookie_state[cookie_file]["in_use"] = False
         cookie_state[cookie_file]["last_released"] = time.time()
         cookie_state[cookie_file]["by"] = ip
