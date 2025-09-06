@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify, Response
 import time
 import threading
 import logging
+import traceback
 import os
 from drop import sync_archive_to_dropbox
 
@@ -39,7 +40,12 @@ def ping():
 def start():
     ip = request.remote_addr
     logger.info(f"[START] Request received from {ip}")
-    
+    try:
+        sync_archive_to_dropbox()
+    except Exception as e:
+        print(f"Error while syncing archive to dropbox: {e}")
+        traceback.print_exc()
+        
 
     with lock:
         now = time.time()
