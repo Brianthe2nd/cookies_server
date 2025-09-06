@@ -5,7 +5,7 @@ from dropbox.exceptions import ApiError, AuthError
 # Move these to a secure place (env vars or config file)
 APP_KEY = "bor1biqle1g1xn3"
 APP_SECRET = "lco6yv2zqa8c3kr"
-REFRESH_TOKEN = "V3C64ZrOgugAAAAAAAAAGi08Y2YTB74bu0shwF-QvTY"  # you got this after OAuth flow
+REFRESH_TOKEN = "T9n2gNcusKsAAAAAAAAAAWudT3BkfbZzGD2HUWhJQ_Ix_akxR2UwFWfP4eL-D8DA"  # you got this after OAuth flow
 
 def sync_archive_to_dropbox(local_folder="/home/admin/archives"):
     """
@@ -44,7 +44,3 @@ def sync_archive_to_dropbox(local_folder="/home/admin/archives"):
                         dropbox_path
                     )
                 print(f"⬆️ Uploaded: {file_name}")
-
-
-# if __name__ == "__main__":
-#     sync_archive_to_dropbox()
