@@ -3,6 +3,8 @@ import time
 import threading
 import logging
 import os
+from drop import sync_archive_to_dropbox
+
 
 app = Flask(__name__)
 
@@ -37,6 +39,7 @@ def ping():
 def start():
     ip = request.remote_addr
     logger.info(f"[START] Request received from {ip}")
+    
 
     with lock:
         now = time.time()
