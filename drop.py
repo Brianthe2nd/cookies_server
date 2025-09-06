@@ -3,18 +3,19 @@ import os
 from access import API
 from dropbox.exceptions import ApiError
 
-def sync_archive_to_dropbox(access_token, local_folder="/home/admin/archives"):
+def sync_archive_to_dropbox(local_folder="/home/admin/archives"):
     """
     Uploads files from local 'archive' folder to Dropbox root if they do not exist.
 
     :param access_token: Dropbox API access token.
     :param local_folder: Local folder path (default: "archive").
     """
+    
     if not os.path.exists(local_folder):
         print(f"⚠️ Local folder '{local_folder}' does not exist. Nothing to upload.")
         return
 
-    dbx = dropbox.Dropbox(access_token)
+    dbx = dropbox.Dropbox(API)
 
     for file_name in os.listdir(local_folder):
         local_path = os.path.join(local_folder, file_name)
